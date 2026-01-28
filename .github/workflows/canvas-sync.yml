@@ -20,8 +20,13 @@ jobs:
           fetch-depth: 2  # Need at least 2 commits for git diff
       
       - name: Setup SSH for private submodule
-        if: secrets.SUBMODULE_SSH_KEY != ''
         run: |
+          # Check if SSH key secret exists (if not, submodule might be public)
+          if [ -z "${{ secrets.SUBMODULE_SSH_KEY }}" ]; then
+            echo "SUBMODULE_SSH_KEY secret not found. Assuming canvastest is public or using HTTPS."
+            exit 0
+          fi
+          
           mkdir -p ~/.ssh
           echo "${{ secrets.SUBMODULE_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
