@@ -1,0 +1,80 @@
+---
+description: Preferred README formatting style — headers, emojis, tone, section order, code blocks, file references
+globs: ["**/README*.md"]
+alwaysApply: false
+---
+# README Formatting Style
+
+## Headers
+
+- Use `#` for the document title only (e.g., `# README '/folder/name'` or project title)
+- Use `##` for main sections (e.g., `## Table of Contents`, `## Activities`)
+- Use `###` for subsections when needed
+- Limit to two heading levels for clarity
+- Keep headings concise and descriptive
+- Section headers may include emojis (see below)
+
+## Emojis
+
+Use emojis to add visual structure and meaning:
+
+- **Section headers**: Add an emoji prefix when it aids scanning (e.g., `## 🚀 Deployment`, `## 📚 Readings`)
+- **Important notes**: Use 🚨 for critical information, ⚠️ for warnings
+- **Status/actions**: Use ✅ for completed items, 💡 for tips, 🔧 for setup/technical sections
+- **Navigation**: Use 🏠 for "Back to Top" and similar links
+- Do not overuse; prefer consistency with a small set of emojis per document
+- Common set: 🚨 ⚠️ ✅ 💡 🔧 📚 🎯 📋 🏠
+
+## Tone
+
+- **Concise**: Get to the point; avoid filler
+- **Humble**: Assume limited prior knowledge; explain clearly without condescending
+- **Direct**: State facts plainly; avoid hedging or padding
+- **Avoid**:
+  - "it is obvious," "clearly," "obviously," "as you can see"
+  - "it is critical," "it goes without saying"
+- **Prefer**: "This step configures X" over "It is critical that you configure X"
+- Use **bold** for emphasis on key terms and file names; *italics* for subtle emphasis
+
+## Section Order
+
+Follow this recommended order:
+
+1. **Header** — Banner image (if used), title, brief description in blockquote
+2. **Quick links / navigation** — Optional top-level links
+3. **Table of Contents** — Anchor links to sections (helps readers understand order)
+4. **Main content sections** — Core content in logical order (e.g., Activities, Usage, Setup)
+5. **Readings / References** — Optional list of links or resources
+6. **Footer** — Footer image (if used), "Back to Top" link
+
+Keep READMEs focused on navigation and overview; put detailed instructions in linked files.
+
+## Code Blocks
+
+- Use fenced code blocks with language tags for syntax highlighting (e.g., ` ```python `, ` ```r `)
+- Include comments for non-obvious steps
+- Keep examples short and runnable when possible
+- **Reference the source file** above or below the block (e.g., "See [`script.py`](script.py) for the full implementation")
+- Use inline backticks for: file names, function names, commands, short code snippets
+- Prefer showing only the relevant portion; link to the full file for context
+
+## References to Files
+
+- **Always use relative hyperlinks** when referring to files
+- **Activity/reading/document files**: Use human-readable titles as link text, e.g.  
+  `[ACTIVITY: Run Example](ACTIVITY_example.md)` instead of `[`ACTIVITY_example.md`](ACTIVITY_example.md)`
+- **Code/script files**: Use the filename in backticks as link text:  
+  ``[`script.py`](script.py)`` or ``[`functions.R`](functions.R)``
+- Place the link near the related code block or instruction
+- Use a brief description after the link when useful (e.g., "— curl examples")
+
+## Checklist
+
+When writing or editing a README:
+
+- [ ] Headers follow `#` title, `##` sections, `###` subsections
+- [ ] Emojis used sparingly and consistently
+- [ ] Tone is concise and humble; no filler phrases
+- [ ] Section order matches: header → ToC → main content → readings → footer
+- [ ] Code blocks have syntax highlighting and reference the source file
+- [ ] All file references use relative links with appropriate link text

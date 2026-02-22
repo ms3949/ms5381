@@ -10,6 +10,7 @@
 
 - [Activities](#activities)
 - [Example Scripts](#example-scripts)
+- [Script documentation](#script-documentation)
 - [Reading Materials](#reading-materials)
 
 ---
@@ -27,6 +28,12 @@ Complete these activities in order:
 3. [ACTIVITY: Find Your API and Documentation](ACTIVITY_your_api.md)
 4. [ACTIVITY: Make Your First API Query](ACTIVITY_your_api_query.md)
 5. [LAB: Develop a Meaningful API Query](LAB_your_good_api_query.md)
+
+---
+
+## Script documentation
+
+- [README: Meaningful World Bank API Query](README_meaningful_worldbank_query.md) — Overview, API endpoint and parameters, response data structure, usage, and flow diagram for [`04_meaningful_worldbank_query.py`](04_meaningful_worldbank_query.py).
 
 ---
 

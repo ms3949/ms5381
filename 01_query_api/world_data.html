@@ -1,0 +1,1260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WORLD DATA — Live Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0a0a0f;
+    --paper: #f5f0e8;
+    --gold: #c9a84c;
+    --gold-light: #e8d5a0;
+    --rust: #b84c2a;
+    --teal: #1a6b6b;
+    --teal-light: #2a9090;
+    --muted: #7a7060;
+    --border: #d4c9b0;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grain overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.4;
+  }
+
+  /* HEADER */
+  header {
+    border-bottom: 2px solid var(--ink);
+    padding: 0 3rem;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: stretch;
+    background: var(--ink);
+    color: var(--paper);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .header-left {
+    padding: 1.2rem 0;
+    border-right: 1px solid rgba(245,240,232,0.15);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .live-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #4ade80;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.4); }
+  }
+
+  .header-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    opacity: 0.6;
+  }
+
+  .header-title {
+    padding: 0 2rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border-right: 1px solid rgba(245,240,232,0.15);
+  }
+
+  .header-title h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.4rem;
+    letter-spacing: 0.05em;
+    color: var(--gold-light);
+  }
+
+  .header-title span {
+    font-size: 0.6rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    opacity: 0.5;
+    margin-top: 2px;
+  }
+
+  .header-right {
+    padding: 1.2rem 0 1.2rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 1rem;
+  }
+
+  .header-right span {
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    opacity: 0.5;
+  }
+
+  /* MAIN LAYOUT */
+  .app {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    min-height: calc(100vh - 65px);
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    border-right: 2px solid var(--ink);
+    padding: 2rem 1.5rem;
+    background: #f0ead8;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .section-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.75rem;
+  }
+
+  /* SEARCH */
+  .search-wrap {
+    position: relative;
+  }
+
+  .search-wrap input {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.5rem;
+    border: 1.5px solid var(--ink);
+    background: var(--paper);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .search-wrap input:focus { border-color: var(--teal); }
+
+  .search-icon {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.9rem;
+    pointer-events: none;
+    opacity: 0.4;
+  }
+
+  /* INDICATOR BUTTONS */
+  .indicator-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .ind-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.7rem 0.9rem;
+    border: 1.5px solid transparent;
+    background: transparent;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.15s;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--ink);
+    position: relative;
+  }
+
+  .ind-btn:hover {
+    background: var(--paper);
+    border-color: var(--border);
+  }
+
+  .ind-btn.active {
+    background: var(--ink);
+    color: var(--paper);
+    border-color: var(--ink);
+  }
+
+  .ind-icon {
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+
+  .ind-info { flex: 1; }
+  .ind-name { font-weight: 500; line-height: 1.3; }
+  .ind-unit { font-size: 0.62rem; opacity: 0.5; margin-top: 1px; }
+
+  /* COUNTRY TAGS */
+  .country-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    max-height: 160px;
+    overflow-y: auto;
+  }
+
+  .country-tag {
+    padding: 0.25rem 0.6rem;
+    border: 1.5px solid var(--border);
+    font-size: 0.65rem;
+    cursor: pointer;
+    background: var(--paper);
+    transition: all 0.15s;
+    font-family: 'DM Mono', monospace;
+    color: var(--ink);
+  }
+
+  .country-tag:hover { border-color: var(--teal); color: var(--teal); }
+  .country-tag.active { background: var(--teal); color: white; border-color: var(--teal); }
+
+  /* YEAR RANGE */
+  .range-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+
+  .range-input {
+    padding: 0.5rem;
+    border: 1.5px solid var(--ink);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem;
+    background: var(--paper);
+    color: var(--ink);
+    outline: none;
+    text-align: center;
+  }
+
+  .range-input:focus { border-color: var(--teal); }
+
+  /* FETCH BUTTON */
+  .fetch-btn {
+    width: 100%;
+    padding: 0.9rem;
+    background: var(--ink);
+    color: var(--gold-light);
+    border: none;
+    cursor: pointer;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .fetch-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--teal);
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+
+  .fetch-btn:hover::before { transform: translateX(0); }
+  .fetch-btn span { position: relative; z-index: 1; }
+  .fetch-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .fetch-btn:disabled::before { display: none; }
+
+  /* MAIN CONTENT */
+  .main {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* TOP BAR */
+  .main-topbar {
+    border-bottom: 1.5px solid var(--border);
+    padding: 1rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--paper);
+  }
+
+  .query-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .query-badge {
+    padding: 0.3rem 0.7rem;
+    background: var(--ink);
+    color: var(--gold-light);
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+  }
+
+  .query-detail {
+    font-size: 0.72rem;
+    color: var(--muted);
+  }
+
+  .view-toggle {
+    display: flex;
+    border: 1.5px solid var(--ink);
+    overflow: hidden;
+  }
+
+  .view-btn {
+    padding: 0.4rem 0.9rem;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.15s;
+  }
+
+  .view-btn.active { background: var(--ink); color: var(--paper); }
+
+  /* CHART AREA */
+  .chart-area {
+    flex: 1;
+    padding: 2rem;
+    overflow-y: auto;
+  }
+
+  /* WELCOME STATE */
+  .welcome {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    min-height: 400px;
+    text-align: center;
+    gap: 1.5rem;
+  }
+
+  .welcome-globe {
+    font-size: 5rem;
+    animation: float 4s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+  }
+
+  .welcome h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.5rem;
+    color: var(--ink);
+  }
+
+  .welcome h2 em {
+    font-style: italic;
+    color: var(--teal);
+  }
+
+  .welcome p {
+    font-size: 0.78rem;
+    color: var(--muted);
+    max-width: 380px;
+    line-height: 1.8;
+  }
+
+  /* LOADING */
+  .loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    min-height: 400px;
+    gap: 1.5rem;
+  }
+
+  .loader-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+
+  .loader-cell {
+    width: 14px; height: 14px;
+    background: var(--ink);
+    animation: blink 1.2s infinite;
+  }
+
+  .loader-cell:nth-child(1) { animation-delay: 0s; }
+  .loader-cell:nth-child(2) { animation-delay: 0.1s; }
+  .loader-cell:nth-child(3) { animation-delay: 0.2s; }
+  .loader-cell:nth-child(4) { animation-delay: 0.3s; }
+  .loader-cell:nth-child(5) { animation-delay: 0.4s; }
+  .loader-cell:nth-child(6) { animation-delay: 0.5s; }
+  .loader-cell:nth-child(7) { animation-delay: 0.6s; }
+  .loader-cell:nth-child(8) { animation-delay: 0.7s; }
+  .loader-cell:nth-child(9) { animation-delay: 0.8s; }
+
+  @keyframes blink {
+    0%, 100% { opacity: 0.1; }
+    50% { opacity: 1; }
+  }
+
+  .loading p {
+    font-size: 0.72rem;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+    animation: fadeText 2s infinite;
+  }
+
+  @keyframes fadeText {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+  }
+
+  /* ERROR */
+  .error-msg {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+    background: #fff0ed;
+    border: 1.5px solid var(--rust);
+    color: var(--rust);
+    font-size: 0.78rem;
+    margin-bottom: 1.5rem;
+  }
+
+  /* STATS ROW */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+    animation: slideUp 0.5s ease forwards;
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .stat-card {
+    padding: 1.25rem;
+    border: 1.5px solid var(--border);
+    background: white;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px;
+    height: 100%;
+    background: var(--teal);
+  }
+
+  .stat-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+  }
+
+  .stat-value {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--ink);
+    line-height: 1;
+  }
+
+  .stat-sub {
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-top: 0.4rem;
+  }
+
+  .stat-delta {
+    font-size: 0.7rem;
+    margin-top: 0.4rem;
+    font-weight: 600;
+  }
+
+  .stat-delta.up { color: #16a34a; }
+  .stat-delta.down { color: var(--rust); }
+
+  /* CHART CANVAS */
+  .chart-wrapper {
+    border: 1.5px solid var(--border);
+    background: white;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    animation: slideUp 0.6s ease forwards;
+  }
+
+  .chart-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .chart-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.3rem;
+  }
+
+  .chart-subtitle {
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-top: 0.25rem;
+    letter-spacing: 0.08em;
+  }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: flex-end;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.65rem;
+  }
+
+  .legend-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  canvas {
+    max-width: 100%;
+  }
+
+  /* TABLE VIEW */
+  .table-container {
+    overflow-x: auto;
+    border: 1.5px solid var(--border);
+    animation: slideUp 0.6s ease forwards;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.72rem;
+    background: white;
+  }
+
+  thead tr {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  th {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  th:hover { opacity: 0.8; }
+
+  td {
+    padding: 0.65rem 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  tr:hover td { background: #f9f5ec; }
+
+  .td-flag { font-size: 1.1rem; }
+
+  .td-value { font-weight: 600; font-family: 'Syne', sans-serif; }
+
+  .td-bar-wrap {
+    width: 80px;
+    height: 4px;
+    background: var(--border);
+    position: relative;
+    display: inline-block;
+  }
+
+  .td-bar {
+    position: absolute;
+    left: 0; top: 0;
+    height: 100%;
+    background: var(--teal);
+  }
+
+  /* AI INSIGHTS */
+  .ai-section {
+    border: 1.5px solid var(--gold);
+    background: #fffdf5;
+    padding: 1.5rem 2rem;
+    margin-top: 1.5rem;
+    animation: slideUp 0.7s ease forwards;
+    position: relative;
+  }
+
+  .ai-section::before {
+    content: 'AI ANALYSIS';
+    position: absolute;
+    top: -0.6rem;
+    left: 1.5rem;
+    background: #fffdf5;
+    padding: 0 0.5rem;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    color: var(--gold);
+    font-weight: 600;
+  }
+
+  .ai-content {
+    font-size: 0.78rem;
+    line-height: 1.8;
+    color: var(--ink);
+  }
+
+  .ai-content p { margin-bottom: 0.75rem; }
+  .ai-content p:last-child { margin-bottom: 0; }
+
+  .ai-loading {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.72rem;
+    color: var(--muted);
+  }
+
+  .ai-spinner {
+    width: 14px; height: 14px;
+    border: 2px solid var(--gold-light);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <div class="live-dot"></div>
+    <span class="header-label">World Bank Open Data · Live API</span>
+  </div>
+  <div class="header-title">
+    <h1>WORLD DATA</h1>
+    <span>Global Development Intelligence</span>
+  </div>
+  <div class="header-right">
+    <span id="statusText">Ready</span>
+  </div>
+</header>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div>
+      <div class="section-label">Indicator</div>
+      <div class="indicator-grid" id="indicatorGrid">
+        <!-- filled by JS -->
+      </div>
+    </div>
+
+    <div>
+      <div class="section-label">Countries</div>
+      <div class="search-wrap" style="margin-bottom:0.75rem">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="countrySearch" placeholder="Filter countries...">
+      </div>
+      <div class="country-list" id="countryList"></div>
+    </div>
+
+    <div>
+      <div class="section-label">Year Range</div>
+      <div class="range-row">
+        <input type="number" class="range-input" id="yearFrom" value="2000" min="1960" max="2023">
+        <input type="number" class="range-input" id="yearTo" value="2023" min="1960" max="2023">
+      </div>
+    </div>
+
+    <button class="fetch-btn" id="fetchBtn" onclick="fetchData()">
+      <span>⬇ Load Data</span>
+    </button>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="main-topbar">
+      <div class="query-info">
+        <span class="query-badge" id="queryBadge">NO QUERY</span>
+        <span class="query-detail" id="queryDetail">Select an indicator and countries, then load data</span>
+      </div>
+      <div class="view-toggle">
+        <button class="view-btn active" id="btnChart" onclick="setView('chart')">📈 Chart</button>
+        <button class="view-btn" id="btnTable" onclick="setView('table')">📋 Table</button>
+      </div>
+    </div>
+
+    <div class="chart-area" id="chartArea">
+      <div class="welcome">
+        <div class="welcome-globe">🌍</div>
+        <h2>Explore the <em>world</em> in data</h2>
+        <p>Choose an indicator, select countries, set a year range, and hit Load Data to visualize development trends from the World Bank's open database.</p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+// ─────────────────────────────────────────────────────────
+// CONFIG
+// ─────────────────────────────────────────────────────────
+
+const INDICATORS = [
+  { id: 'NY.GDP.PCAP.CD', name: 'GDP per Capita', unit: 'USD', icon: '💰' },
+  { id: 'SP.POP.TOTL', name: 'Population', unit: 'people', icon: '👥' },
+  { id: 'SP.DYN.LE00.IN', name: 'Life Expectancy', unit: 'years', icon: '🏥' },
+  { id: 'SE.ADT.LITR.ZS', name: 'Adult Literacy Rate', unit: '% of adults', icon: '📚' },
+  { id: 'EG.USE.PCAP.KG.OE', name: 'Energy Use per Capita', unit: 'kg oil equiv.', icon: '⚡' },
+  { id: 'EN.ATM.CO2E.PC', name: 'CO₂ Emissions per Cap.', unit: 'metric tons', icon: '🌿' },
+  { id: 'SH.DYN.MORT', name: 'Child Mortality Rate', unit: 'per 1,000 births', icon: '🍼' },
+  { id: 'SL.UEM.TOTL.ZS', name: 'Unemployment Rate', unit: '% labor force', icon: '📊' },
+];
+
+const COUNTRIES = [
+  { code: 'US', name: 'United States', flag: '🇺🇸' },
+  { code: 'CN', name: 'China', flag: '🇨🇳' },
+  { code: 'IN', name: 'India', flag: '🇮🇳' },
+  { code: 'DE', name: 'Germany', flag: '🇩🇪' },
+  { code: 'GB', name: 'United Kingdom', flag: '🇬🇧' },
+  { code: 'FR', name: 'France', flag: '🇫🇷' },
+  { code: 'JP', name: 'Japan', flag: '🇯🇵' },
+  { code: 'BR', name: 'Brazil', flag: '🇧🇷' },
+  { code: 'NG', name: 'Nigeria', flag: '🇳🇬' },
+  { code: 'ZA', name: 'South Africa', flag: '🇿🇦' },
+  { code: 'MX', name: 'Mexico', flag: '🇲🇽' },
+  { code: 'KR', name: 'South Korea', flag: '🇰🇷' },
+  { code: 'ID', name: 'Indonesia', flag: '🇮🇩' },
+  { code: 'SA', name: 'Saudi Arabia', flag: '🇸🇦' },
+  { code: 'EG', name: 'Egypt', flag: '🇪🇬' },
+  { code: 'PK', name: 'Pakistan', flag: '🇵🇰' },
+  { code: 'AR', name: 'Argentina', flag: '🇦🇷' },
+  { code: 'AU', name: 'Australia', flag: '🇦🇺' },
+  { code: 'CA', name: 'Canada', flag: '🇨🇦' },
+  { code: 'RU', name: 'Russia', flag: '🇷🇺' },
+  { code: 'KE', name: 'Kenya', flag: '🇰🇪' },
+  { code: 'TH', name: 'Thailand', flag: '🇹🇭' },
+  { code: 'ET', name: 'Ethiopia', flag: '🇪🇹' },
+];
+
+// De-duplicate by country code
+const UNIQUE_COUNTRIES = [...new Map(COUNTRIES.map(c => [c.code, c])).values()];
+
+const PALETTE = [
+  '#1a6b6b','#c9a84c','#b84c2a','#3b82f6','#8b5cf6',
+  '#059669','#dc2626','#d97706','#2563eb','#7c3aed',
+];
+
+// ─────────────────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────────────────
+
+let selectedIndicator = INDICATORS[0];
+let selectedCountries = ['US','CN','IN','DE','GB'];
+let chartInstance = null;
+let currentView = 'chart';
+let lastData = null;
+
+// ─────────────────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────────────────
+
+function init() {
+  // Render indicators
+  const grid = document.getElementById('indicatorGrid');
+  grid.innerHTML = INDICATORS.map((ind, i) => `
+    <button class="ind-btn ${i===0?'active':''}" onclick="selectIndicator(${i})">
+      <span class="ind-icon">${ind.icon}</span>
+      <div class="ind-info">
+        <div class="ind-name">${ind.name}</div>
+        <div class="ind-unit">${ind.unit}</div>
+      </div>
+    </button>
+  `).join('');
+
+  // Render countries
+  renderCountryList('');
+
+  // Search
+  document.getElementById('countrySearch').addEventListener('input', e => {
+    renderCountryList(e.target.value);
+  });
+}
+
+function renderCountryList(filter) {
+  const list = document.getElementById('countryList');
+  const f = filter.toLowerCase();
+  const filtered = UNIQUE_COUNTRIES.filter(c =>
+    c.name.toLowerCase().includes(f) || c.code.toLowerCase().includes(f)
+  );
+  list.innerHTML = filtered.map(c => `
+    <button class="country-tag ${selectedCountries.includes(c.code)?'active':''}"
+      onclick="toggleCountry('${c.code}', this)">
+      ${c.flag} ${c.code}
+    </button>
+  `).join('');
+}
+
+function selectIndicator(i) {
+  selectedIndicator = INDICATORS[i];
+  document.querySelectorAll('.ind-btn').forEach((b,j) => b.classList.toggle('active', i===j));
+}
+
+function toggleCountry(code, el) {
+  const idx = selectedCountries.indexOf(code);
+  if(idx > -1) {
+    if(selectedCountries.length === 1) return; // keep at least 1
+    selectedCountries.splice(idx, 1);
+  } else {
+    if(selectedCountries.length >= 6) {
+      selectedCountries.shift();
+    }
+    selectedCountries.push(code);
+  }
+  renderCountryList(document.getElementById('countrySearch').value);
+}
+
+function setView(v) {
+  currentView = v;
+  document.getElementById('btnChart').classList.toggle('active', v==='chart');
+  document.getElementById('btnTable').classList.toggle('active', v==='table');
+  if(lastData) renderResults(lastData);
+}
+
+// ─────────────────────────────────────────────────────────
+// FETCH
+// ─────────────────────────────────────────────────────────
+
+async function fetchData() {
+  const btn = document.getElementById('fetchBtn');
+  const yearFrom = document.getElementById('yearFrom').value;
+  const yearTo = document.getElementById('yearTo').value;
+
+  if(selectedCountries.length === 0) return;
+
+  btn.disabled = true;
+  document.getElementById('statusText').textContent = 'Fetching...';
+  document.getElementById('queryBadge').textContent = selectedIndicator.id;
+  document.getElementById('queryDetail').textContent = `${selectedCountries.join(', ')} · ${yearFrom}–${yearTo}`;
+
+  showLoading();
+
+  try {
+    const countryCodes = selectedCountries.join(';');
+    const url = `https://api.worldbank.org/v2/country/${countryCodes}/indicator/${selectedIndicator.id}?date=${yearFrom}:${yearTo}&format=json&per_page=500`;
+
+    const resp = await fetch(url);
+    if(!resp.ok) throw new Error(`API error ${resp.status}`);
+    const json = await resp.json();
+
+    if(!json[1] || json[1].length === 0) throw new Error('No data returned for this query.');
+
+    // Process
+    const data = processData(json[1]);
+    lastData = data;
+    renderResults(data);
+    document.getElementById('statusText').textContent = `${json[1].length} records loaded`;
+
+  } catch(e) {
+    showError(e.message);
+    document.getElementById('statusText').textContent = 'Error';
+  }
+
+  btn.disabled = false;
+}
+
+function processData(raw) {
+  // Group by country
+  const byCountry = {};
+  raw.forEach(entry => {
+    if(entry.value === null) return;
+    const code = entry.countryiso3code || entry.country?.value;
+    const cname = entry.country?.value || code;
+    const year = parseInt(entry.date);
+    if(!byCountry[code]) byCountry[code] = { name: cname, code, years: [], values: [] };
+    byCountry[code].years.push(year);
+    byCountry[code].values.push(entry.value);
+  });
+
+  // Sort each country's data by year
+  Object.values(byCountry).forEach(c => {
+    const paired = c.years.map((y,i) => [y,c.values[i]]).sort((a,b)=>a[0]-b[0]);
+    c.years = paired.map(p=>p[0]);
+    c.values = paired.map(p=>p[1]);
+    // Latest, first, delta
+    c.latest = c.values[c.values.length-1];
+    c.latestYear = c.years[c.years.length-1];
+    c.earliest = c.values[0];
+    c.earliestYear = c.years[0];
+    c.delta = c.earliest ? ((c.latest - c.earliest) / Math.abs(c.earliest)) * 100 : 0;
+  });
+
+  // All years
+  const allYears = [...new Set(raw.map(e=>parseInt(e.date)).filter(Boolean))].sort();
+
+  return { byCountry, allYears };
+}
+
+// ─────────────────────────────────────────────────────────
+// RENDER
+// ─────────────────────────────────────────────────────────
+
+function showLoading() {
+  document.getElementById('chartArea').innerHTML = `
+    <div class="loading">
+      <div class="loader-grid">
+        ${Array(9).fill('<div class="loader-cell"></div>').join('')}
+      </div>
+      <p>Querying World Bank API</p>
+    </div>`;
+}
+
+function showError(msg) {
+  document.getElementById('chartArea').innerHTML = `
+    <div style="padding:2rem">
+      <div class="error-msg">⚠️ ${msg}</div>
+      <p style="font-size:0.72rem;color:var(--muted)">Try adjusting your indicator, countries, or year range.</p>
+    </div>`;
+}
+
+function renderResults(data) {
+  const countries = Object.values(data.byCountry);
+  if(countries.length === 0) { showError('No data found.'); return; }
+
+  // Stats
+  const statsHTML = renderStats(countries);
+
+  if(currentView === 'chart') {
+    document.getElementById('chartArea').innerHTML = `
+      ${statsHTML}
+      <div class="chart-wrapper">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">${selectedIndicator.name}</div>
+            <div class="chart-subtitle">${selectedIndicator.unit} · ${countries.map(c=>c.name).join(', ')}</div>
+          </div>
+          <div class="legend" id="chartLegend"></div>
+        </div>
+        <canvas id="mainChart" height="280"></canvas>
+      </div>
+      <div class="ai-section">
+        <div class="ai-loading">
+          <div class="ai-spinner"></div>
+          Generating AI analysis...
+        </div>
+      </div>`;
+
+    buildLegend(countries);
+    drawChart(data);
+    setTimeout(() => generateAIInsight(countries, data), 400);
+
+  } else {
+    document.getElementById('chartArea').innerHTML = `
+      ${statsHTML}
+      ${renderTable(countries)}`;
+  }
+}
+
+function renderStats(countries) {
+  const maxLatest = countries.reduce((a,b) => a.latest > b.latest ? a : b);
+  const minLatest = countries.reduce((a,b) => a.latest < b.latest ? a : b);
+  const avgLatest = countries.reduce((s,c) => s + c.latest, 0) / countries.length;
+  const maxDelta = countries.reduce((a,b) => Math.abs(a.delta) > Math.abs(b.delta) ? a : b);
+  const flag = c => (UNIQUE_COUNTRIES.find(x=>x.code===c.code||x.name===c.name)||{flag:''}).flag;
+
+  return `<div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">Highest (latest year)</div>
+      <div class="stat-value">${fmt(maxLatest.latest)}</div>
+      <div class="stat-sub">${flag(maxLatest)} ${maxLatest.name} · ${maxLatest.latestYear}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Lowest (latest year)</div>
+      <div class="stat-value">${fmt(minLatest.latest)}</div>
+      <div class="stat-sub">${flag(minLatest)} ${minLatest.name} · ${minLatest.latestYear}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Average (latest year)</div>
+      <div class="stat-value">${fmt(avgLatest)}</div>
+      <div class="stat-sub">${countries.length} countries</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Biggest % Change</div>
+      <div class="stat-value">${maxDelta.delta >= 0 ? '+':''}${maxDelta.delta.toFixed(1)}%</div>
+      <div class="stat-sub ${maxDelta.delta>=0?'stat-delta up':'stat-delta down'}">${flag(maxDelta)} ${maxDelta.name}</div>
+    </div>
+  </div>`;
+}
+
+function renderTable(countries) {
+  const maxVal = Math.max(...countries.map(c => c.latest));
+  const flag = c => (UNIQUE_COUNTRIES.find(x=>x.code===c.code||x.name===c.name)||{flag:''}).flag;
+
+  return `<div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Country</th>
+          <th>Latest Value</th>
+          <th>Year</th>
+          <th>First Value</th>
+          <th>Change</th>
+          <th>Trend</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${countries.sort((a,b)=>b.latest-a.latest).map(c => {
+          const pct = (c.latest / maxVal) * 100;
+          const deltaSign = c.delta >= 0 ? '+' : '';
+          const deltaClass = c.delta >= 0 ? 'up' : 'down';
+          return `<tr>
+            <td><span class="td-flag">${flag(c)}</span> ${c.name}</td>
+            <td class="td-value">${fmt(c.latest)}</td>
+            <td>${c.latestYear}</td>
+            <td>${fmt(c.earliest)} (${c.earliestYear})</td>
+            <td class="stat-delta ${deltaClass}">${deltaSign}${c.delta.toFixed(1)}%</td>
+            <td><span class="td-bar-wrap"><span class="td-bar" style="width:${pct}%"></span></span></td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+function buildLegend(countries) {
+  document.getElementById('chartLegend').innerHTML = countries.map((c,i) => {
+    const flag = (UNIQUE_COUNTRIES.find(x=>x.code===c.code||x.name===c.name)||{flag:''}).flag;
+    return `<div class="legend-item">
+      <div class="legend-dot" style="background:${PALETTE[i%PALETTE.length]}"></div>
+      <span>${flag} ${c.name}</span>
+    </div>`;
+  }).join('');
+}
+
+function drawChart(data) {
+  const ctx = document.getElementById('mainChart');
+  if(!ctx) return;
+
+  if(chartInstance) { chartInstance.destroy(); chartInstance = null; }
+
+  const countries = Object.values(data.byCountry);
+  const allYears = data.allYears;
+
+  // Build datasets
+  const datasets = countries.map((c, i) => ({
+    label: c.name,
+    data: allYears.map(y => {
+      const idx = c.years.indexOf(y);
+      return idx > -1 ? c.values[idx] : null;
+    }),
+    borderColor: PALETTE[i % PALETTE.length],
+    backgroundColor: PALETTE[i % PALETTE.length] + '18',
+    borderWidth: 2.5,
+    pointRadius: 3,
+    pointHoverRadius: 6,
+    tension: 0.35,
+    fill: countries.length === 1,
+    spanGaps: true,
+  }));
+
+  // Load Chart.js from CDN
+  if(typeof Chart === 'undefined') {
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js';
+    script.onload = () => createChart(ctx, allYears, datasets);
+    document.head.appendChild(script);
+  } else {
+    createChart(ctx, allYears, datasets);
+  }
+}
+
+function createChart(ctx, allYears, datasets) {
+  chartInstance = new Chart(ctx, {
+    type: 'line',
+    data: { labels: allYears, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#0a0a0f',
+          titleColor: '#e8d5a0',
+          bodyColor: '#f5f0e8',
+          borderColor: '#c9a84c',
+          borderWidth: 1,
+          padding: 12,
+          titleFont: { family: 'Syne', size: 12, weight: 'bold' },
+          bodyFont: { family: 'DM Mono', size: 11 },
+          callbacks: {
+            label: ctx => ` ${ctx.dataset.label}: ${fmt(ctx.parsed.y)}`
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: 'rgba(0,0,0,0.04)' },
+          ticks: { font: { family: 'DM Mono', size: 10 }, color: '#7a7060' }
+        },
+        y: {
+          grid: { color: 'rgba(0,0,0,0.04)' },
+          ticks: {
+            font: { family: 'DM Mono', size: 10 }, color: '#7a7060',
+            callback: v => fmtShort(v)
+          }
+        }
+      },
+    }
+  });
+  // fix height
+  ctx.parentElement.style.height = '320px';
+}
+
+// ─────────────────────────────────────────────────────────
+// AI INSIGHTS (Claude API)
+// Requires API key via a backend proxy in production — do not put keys in client code.
+// ─────────────────────────────────────────────────────────
+
+async function generateAIInsight(countries, data) {
+  const aiSection = document.querySelector('.ai-section');
+  if(!aiSection) return;
+
+  // Build a compact data summary
+  const summary = countries.map(c =>
+    `${c.name}: latest=${fmt(c.latest)} (${c.latestYear}), earliest=${fmt(c.earliest)} (${c.earliestYear}), change=${c.delta.toFixed(1)}%`
+  ).join('\n');
+
+  const prompt = `You are a concise global development analyst. Given this World Bank data for "${selectedIndicator.name}" (${selectedIndicator.unit}):
+
+${summary}
+
+Write a 3-paragraph analysis (2-3 sentences each) covering:
+1. Key differences between countries and what drives them
+2. Notable trends over the time period
+3. One surprising insight or policy implication
+
+Be specific, data-driven, and avoid generic statements. Keep language accessible.`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': window.ANTHROPIC_API_KEY || '',
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    const json = await response.json();
+    const text = json.content?.[0]?.text || '';
+
+    if(text) {
+      const paras = text.trim().split(/\n\n+/).map(p =>
+        `<p>${p.replace(/\n/g,' ')}</p>`
+      ).join('');
+      aiSection.querySelector('.ai-loading, .ai-content')?.remove();
+      aiSection.innerHTML += `<div class="ai-content">${paras}</div>`;
+      aiSection.querySelector('.ai-loading')?.remove();
+    } else {
+      throw new Error(json.error?.message || 'No text in response');
+    }
+  } catch(e) {
+    if(aiSection) {
+      aiSection.innerHTML = `<div class="ai-content"><p>AI analysis unavailable. <span style="color:var(--muted)">The data above shows the raw trends — look for the country with the highest growth rate and compare it to those with the lowest for meaningful insights.</span></p></div>`;
+    }
+  }
+}
+
+// ─────────────────────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────────────────────
+
+function fmt(n) {
+  if(n === null || n === undefined) return '—';
+  if(Math.abs(n) >= 1e9) return (n/1e9).toFixed(2) + 'B';
+  if(Math.abs(n) >= 1e6) return (n/1e6).toFixed(2) + 'M';
+  if(Math.abs(n) >= 1e3) return n.toLocaleString(undefined, {maximumFractionDigits:1});
+  return n.toFixed(2);
+}
+
+function fmtShort(n) {
+  if(Math.abs(n) >= 1e9) return (n/1e9).toFixed(1) + 'B';
+  if(Math.abs(n) >= 1e6) return (n/1e6).toFixed(1) + 'M';
+  if(Math.abs(n) >= 1e3) return (n/1e3).toFixed(0) + 'K';
+  return n.toFixed(1);
+}
+
+// ─────────────────────────────────────────────────────────
+// GO
+// ─────────────────────────────────────────────────────────
+
+init();
+</script>
+</body>
+</html>

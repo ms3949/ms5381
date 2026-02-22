@@ -43,19 +43,19 @@ report_text = mock_llm_response["response"]
 
 # Write directly to a text file
 # Simple and universal format
-with open("report.txt", "w", encoding="utf-8") as f:
+with open("03_query_ai/05_reporting_report.txt", "w", encoding="utf-8") as f:
     f.write(report_text)
 
-print("✅ Saved report.txt")
+print("✅ Saved 03_query_ai/05_reporting_report.txt")
 
 # 2. SAVE AS MARKDOWN (.md) ###################################
 
 # Markdown files are great for GitHub and documentation
 # The content is already in markdown format, so we just write it
-with open("report.md", "w", encoding="utf-8") as f:
+with open("05_reporting_report.md", "w", encoding="utf-8") as f:
     f.write(report_text)
 
-print("✅ Saved report.md")
+print("✅ Saved 05_reporting_report.md")
 
 # 3. SAVE AS HTML (.html) ###################################
 
@@ -79,10 +79,10 @@ html_document = f"""<!DOCTYPE html>
 </body>
 </html>"""
 
-with open("report.html", "w", encoding="utf-8") as f:
+with open("05_reporting_report.html", "w", encoding="utf-8") as f:
     f.write(html_document)
 
-print("✅ Saved report.html")
+print("✅ Saved 05_reporting_report.html")
 
 # 4. SAVE AS WORD DOCUMENT (.docx) ###################################
 
@@ -105,7 +105,7 @@ for line in report_text.split("\n"):
         # Regular paragraph
         doc.add_paragraph(line)
 
-doc.save("report.docx")
+doc.save("05_reporting_report.docx")
 
-print("✅ Saved report.docx")
+print("✅ Saved 05_reporting_report.docx")
 print("\n✅ All report formats saved successfully!")
