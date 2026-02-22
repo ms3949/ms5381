@@ -1,5 +1,14 @@
 # README `/digitalocean`
 
+# 🚀 Deploying to DigitalOcean App Platform
+
+This folder covers deploying apps from this repo to **DigitalOcean App Platform**.
+
+- **R Plumber API** (this folder): use the `plumber/` Dockerfile and steps below.
+- **Shiny for Python app** (World Bank GDP Explorer): use the Shiny app in the repo with its own Dockerfile. See **[01_query_api/shiny_app/README.md](../../01_query_api/shiny_app/README.md#deploy-to-digitalocean-app-platform)** for step-by-step instructions. Set **Source Directory** to `01_query_api/shiny_app` and **Build** to Dockerfile.
+
+---
+
 # 🚀 Deploying a Plumber API to DigitalOcean App Platform
 
 This tutorial will walk you through deploying your R Plumber API to DigitalOcean's App Platform. This guide is designed for graduate students who are new to coding and deployment.

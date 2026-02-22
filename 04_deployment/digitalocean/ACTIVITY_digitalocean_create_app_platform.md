@@ -48,10 +48,15 @@ In this task, you will deploy a live app with **DigitalOcean's App Platform**!
 ### ✅ Review and configure settings
 
 - [ ] Set the instance size to the lowest payment tier - eg. $5/month.
-- If you are deploying our test `plumber.R` app:
+- If you are deploying our test **Plumber** app (`plumber/` in this folder):
+  - [ ] set the **Source Directory** to `04_deployment/digitalocean/plumber` (or leave blank if the repo root contains the Dockerfile)
   - [ ] set the **Build strategy** to **Dockerfile**
-  - [ ] leave the **Run command** undefined - because by default, that docker image runs the script specied in the `Dockerfile` in R on startup.
-- If you are deploying a different kind of app, I encourage you to specify the startup command in the `Dockerfile` itself.
+  - [ ] leave the **Run command** undefined — the Dockerfile starts the API.
+- If you are deploying the **Shiny for Python** app (World Bank GDP Explorer):
+  - [ ] set the **Source Directory** to `01_query_api/shiny_app`
+  - [ ] set the **Build strategy** to **Dockerfile**
+  - [ ] leave the **Run command** undefined. See [01_query_api/shiny_app/README.md](../../01_query_api/shiny_app/README.md#deploy-to-digitalocean-app-platform) for full steps.
+- For any other app, specify the startup command in the `Dockerfile` or in the Run command.
 
 ---
 

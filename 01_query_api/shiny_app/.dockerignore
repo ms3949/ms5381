@@ -1,0 +1,14 @@
+# Virtual environment and local caches
+.venv
+__pycache__
+*.pyc
+.pytest_cache
+.env
+.env.*
+!.env.example
+
+# Git and IDE
+.git
+.gitignore
+*.md
+.dockerignore
