@@ -1,0 +1,35 @@
+name: Deploy Plumber API to Posit Connect
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '04_deployment/digitalocean/plumber/**'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-r@v2
+
+      - name: Install rsconnect
+        run: Rscript -e 'install.packages("rsconnect")'
+
+      - name: Deploy to Posit Connect
+        run: |
+          Rscript -e '
+            rsconnect::deployApp(
+              appDir = "04_deployment/digitalocean/plumber",
+              appPrimaryDoc = "plumber.R",
+              server = Sys.getenv("CONNECT_SERVER"),
+              apiKey = Sys.getenv("CONNECT_API_KEY"),
+              forceUpdate = TRUE
+            )
+          '
+        env:
+          CONNECT_SERVER: ${{ secrets.CONNECT_SERVER }}
+          CONNECT_API_KEY: ${{ secrets.CONNECT_API_KEY }}
