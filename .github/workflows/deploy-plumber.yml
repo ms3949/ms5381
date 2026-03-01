@@ -23,11 +23,19 @@ jobs:
         run: |
           Rscript -e '
             install.packages("rsconnect")
+            rsconnect::addConnectServer(
+              url = Sys.getenv("CONNECT_SERVER"),
+              name = "posit-connect"
+            )
+            rsconnect::connectApiUser(
+              account = "deploy",
+              server = "posit-connect",
+              apiKey = Sys.getenv("CONNECT_API_KEY")
+            )
             rsconnect::deployApp(
               appDir = "04_deployment/digitalocean/plumber",
               appPrimaryDoc = "plumber.R",
-              server = Sys.getenv("CONNECT_SERVER"),
-              apiKey = Sys.getenv("CONNECT_API_KEY"),
+              server = "posit-connect",
               forceUpdate = TRUE
             )
           '
