@@ -22,7 +22,7 @@ jobs:
       - name: Install and Deploy to Posit Connect
         run: |
           Rscript -e '
-            install.packages("rsconnect")
+            install.packages(c("rsconnect", "plumber", "shiny"))
             rsconnect::addConnectServer(
               url = Sys.getenv("CONNECT_SERVER"),
               name = "posit-connect"
